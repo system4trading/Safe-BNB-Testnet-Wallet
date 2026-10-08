@@ -1,7 +1,7 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
-import FileBasedMultisig from '@/apps/tx-builder/src/components/FileBasedMultisig';
+import FileBasedMultisig from '@/components/tx/FileBasedMultisig';
 import { useWeb3 } from '@/hooks/useWeb3';
 import { useConnectWallet } from '@/hooks/useConnectWallet';
 
