@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Safe from '@safe-global/protocol-kit';
 
-export default function FileBasedMultisig({ provider, multisigAddress }) {
+export default function FileBasedMultisig({ provider, safeAddress }) {
   const [jsonInput, setJsonInput] = useState('');
   const [txStatus, setTxStatus] = useState('');
 
@@ -22,7 +22,7 @@ export default function FileBasedMultisig({ provider, multisigAddress }) {
 
       const protocolKit = await Safe.init({ 
         provider: browserProvider, 
-        multisigAddress: multisigAddress 
+        safeAddress: safeAddress 
       });
 
       setTxStatus('Wallet connected to Safe Kit. Initiating transaction signature...');
@@ -78,7 +78,7 @@ export default function FileBasedMultisig({ provider, multisigAddress }) {
 
       const protocolKit = await Safe.init({ 
         provider: browserProvider, 
-        multisigAddress: multisigAddress 
+        safeAddress: safeAddress 
       });
 
       setTxStatus('Rebuilding transaction payload from file data...');
@@ -107,7 +107,7 @@ export default function FileBasedMultisig({ provider, multisigAddress }) {
       </div>
 
       <p style={{ color: '#A1A8B3', fontSize: '14px', marginBottom: '24px' }}>
-        Safe Address: <code style={{ backgroundColor: '#1E2022', padding: '4px 8px', borderRadius: '4px', color: '#F0B90B' }}>{multisigAddress}</code>
+        Safe Address: <code style={{ backgroundColor: '#1E2022', padding: '4px 8px', borderRadius: '4px', color: '#F0B90B' }}>{safeAddress}</code>
       </p>
 
       {/* Owner 1 Section */}
