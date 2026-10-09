@@ -2,14 +2,20 @@ import React, { useState } from 'react';
 import Safe from '@safe-global/protocol-kit';
 import type { SafeProvider } from '@safe-global/protocol-kit';
 
-// 💡 FIXED: Define precise strict type parameter boundaries for props
+// Define the shape of incoming arguments explicitly
 interface FileBasedMultisigProps {
   provider: SafeProvider | any;
   safeAddress: string;
-  customAppTxData?: any; // Safe app iframe payload support pass-through
+  customAppTxData?: any; 
 }
 
-export default function FileBasedMultisig({ provider, safeAddress, customAppTxData }: FileBasedMultisigProps) {
+// 💡 FIXED: Explicitly bind the type interface definition right on the function signature line
+export default function FileBasedMultisig({ 
+  provider, 
+  safeAddress, 
+  customAppTxData 
+}: FileBasedMultisigProps) {
+  
   const [jsonInput, setJsonInput] = useState('');
   const [txStatus, setTxStatus] = useState('');
 
@@ -32,7 +38,6 @@ export default function FileBasedMultisig({ provider, safeAddress, customAppTxDa
 
       setTxStatus('Wallet connected to Safe Kit. Initiating transaction signature...');
       
-      // Use intercepted custom app hex array payload data if present, otherwise fallback to empty placeholder
       const txData = customAppTxData || { to: '0x0000000000000000000000000000000000000000', value: '0', data: '0x' };
       
       const safeTx = await protocolKit.createTransaction({ transactions: [txData] });
@@ -47,7 +52,6 @@ export default function FileBasedMultisig({ provider, safeAddress, customAppTxDa
       a.click();
       setTxStatus('Transaction file downloaded successfully!');
     } catch (e: unknown) {
-      // 💡 FIXED: Resolved strict catch block scoping error
       const errorInstance = e as Error;
       setTxStatus(`Error: ${errorInstance.message}`);
     }
