@@ -11,7 +11,7 @@ export default function FileBasedMultisig({ provider, safeAddress }) {
       setTxStatus('Accessing injected wallet extension...');
       
       // Fallback: Read directly from the browser window object if no provider was passed
-      const browserProvider = provider || (typeof window !== 'undefined' ? window.ethereum : null);
+      const browserProvider = provider || (typeof window !== 'undefined' ? (window as Any).ethereum : null);
       
       if (!browserProvider) {
         throw new Error("No web3 wallet found. Please install MetaMask or Trust Wallet.");
@@ -68,7 +68,7 @@ export default function FileBasedMultisig({ provider, safeAddress }) {
       setTxStatus('Accessing injected wallet extension...');
       
       // Fallback: Apply the same robust wallet detection logic for Owner 2
-      const browserProvider = provider || (typeof window !== 'undefined' ? window.ethereum : null);
+      const browserProvider = provider || (typeof window !== 'undefined' ? (window as Any).ethereum : null);
       
       if (!browserProvider) {
         throw new Error("No web3 wallet found. Please install MetaMask or Trust Wallet.");
