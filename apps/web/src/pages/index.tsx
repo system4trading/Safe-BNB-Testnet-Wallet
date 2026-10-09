@@ -17,7 +17,7 @@ const IndexPage: NextPage = () => {
     return null;
   };
 
-  // 💡 FIXED: Connect directly via standard browser provider parameters, bypassing missing hooks
+  // Connect directly via standard browser provider parameters
   const connectInjectedWallet = async () => {
     const ethereum = getProvider();
     if (!ethereum) {
@@ -45,7 +45,7 @@ const IndexPage: NextPage = () => {
       if (event.data && event.data.params && event.data.method === 'sendTransactions') {
         const txsArray = event.data.params.txs;
         if (txsArray && txsArray.length > 0) {
-          setInterceptedTx(txsArray[0]); // Grab the raw transaction hex metadata payload
+          setInterceptedTx(txsArray); // Grab the raw transaction hex metadata payload
           alert("Transaction request captured from your custom app! Proceed to Step 1 below to generate your JSON signature file.");
         }
       }
@@ -69,7 +69,8 @@ const IndexPage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Safe{Wallet} – Local Chapel Workspace</title>
+        {/* 💡 FIXED: Stripped curly braces from Wallet so it parses as regular string text */}
+        <title>Safe{`{Wallet}`} – Local Chapel Workspace</title>
       </Head>
 
       <main style={{ padding: '40px 20px', minHeight: '100vh', backgroundColor: '#0F1011', fontFamily: 'Inter, sans-serif' }}>
