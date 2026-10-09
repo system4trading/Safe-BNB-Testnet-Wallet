@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
 import Safe from '@safe-global/protocol-kit';
+import type { SafeProvider } from '@safe-global/protocol-kit';
 
-export default function FileBasedMultisig({ provider, safeAddress }) {
+// 💡 FIXED: Define precise strict type parameter boundaries for props
+interface FileBasedMultisigProps {
+  provider: SafeProvider | any;
+  safeAddress: string;
+  customAppTxData?: any; // Safe app iframe payload support pass-through
+}
+
+export default function FileBasedMultisig({ provider, safeAddress, customAppTxData }: FileBasedMultisigProps) {
   const [jsonInput, setJsonInput] = useState('');
   const [txStatus, setTxStatus] = useState('');
 
@@ -10,14 +18,11 @@ export default function FileBasedMultisig({ provider, safeAddress }) {
     try {
       setTxStatus('Accessing injected wallet extension...');
       
-      // Fallback: Read directly from the browser window object if no provider was passed
-      const browserProvider = provider || (typeof window !== 'undefined' ? (window as Any).ethereum : null);
-      
+      const browserProvider = provider || (typeof window !== 'undefined' ? (window as any).ethereum : null);
       if (!browserProvider) {
         throw new Error("No web3 wallet found. Please install MetaMask or Trust Wallet.");
       }
 
-      // Force prompt the browser wallet to request network authorization/connection
       await browserProvider.request({ method: 'eth_requestAccounts' });
 
       const protocolKit = await Safe.init({ 
@@ -26,8 +31,10 @@ export default function FileBasedMultisig({ provider, safeAddress }) {
       });
 
       setTxStatus('Wallet connected to Safe Kit. Initiating transaction signature...');
-      // Default placeholder tx: sending 0 tBNB to a null address
-      const txData = { to: '0x0000000000000000000000000000000000000000', value: '0', data: '0x' };
+      
+      // Use intercepted custom app hex array payload data if present, otherwise fallback to empty placeholder
+      const txData = customAppTxData || { to: '0x0000000000000000000000000000000000000000', value: '0', data: '0x' };
+      
       const safeTx = await protocolKit.createTransaction({ transactions: [txData] });
       const signedTx = await protocolKit.signTransaction(safeTx);
 
@@ -39,12 +46,14 @@ export default function FileBasedMultisig({ provider, safeAddress }) {
       a.download = `chapel-safe-tx-${signedTx.data.nonce}.json`;
       a.click();
       setTxStatus('Transaction file downloaded successfully!');
-    } catch (e: any) {
-      setTxStatus(`Error: ${e.message}`);
+    } catch (e: unknown) {
+      // 💡 FIXED: Resolved strict catch block scoping error
+      const errorInstance = e as Error;
+      setTxStatus(`Error: ${errorInstance.message}`);
     }
   };
 
-  // Process incoming file uploads
+  // Process manual file uploads from device storage
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -52,7 +61,7 @@ export default function FileBasedMultisig({ provider, safeAddress }) {
       reader.onload = (event) => {
         const text = event.target?.result as string;
         setJsonInput(text);
-        setTxStatus('File imported successfully into the text area below!');
+        setTxStatus('File text content successfully loaded into state!');
       };
       reader.readAsText(file);
     }
@@ -62,14 +71,12 @@ export default function FileBasedMultisig({ provider, safeAddress }) {
   const handleImportAndExecute = async () => {
     try {
       if (!jsonInput.trim()) {
-        setTxStatus('Error: Please upload a file or paste JSON data first.');
+        setTxStatus('Error: Input data area is empty.');
         return;
       }
       setTxStatus('Accessing injected wallet extension...');
       
-      // Fallback: Apply the same robust wallet detection logic for Owner 2
-      const browserProvider = provider || (typeof window !== 'undefined' ? (window as Any).ethereum : null);
-      
+      const browserProvider = provider || (typeof window !== 'undefined' ? (window as any).ethereum : null);
       if (!browserProvider) {
         throw new Error("No web3 wallet found. Please install MetaMask or Trust Wallet.");
       }
@@ -93,14 +100,14 @@ export default function FileBasedMultisig({ provider, safeAddress }) {
       setTxStatus('Broadcasting fully-signed payload live to Chapel Testnet...');
       const result = await protocolKit.executeTransaction(finalSignedTx);
       setTxStatus(`Success! Broadcasted Hash: ${result.hash}`);
-    } catch (e: any) {
-      setTxStatus(`Execution Failed: ${e.message}`);
+    } catch (e: unknown) {
+      const errorInstance = e as Error;
+      setTxStatus(`Execution Failed: ${errorInstance.message}`);
     }
   };
 
   return (
     <div style={{ backgroundColor: '#121314', color: '#FFFFFF', padding: '32px', borderRadius: '16px', border: '1px solid #2E3033', fontFamily: 'Inter, sans-serif', maxWidth: '600px', margin: '40px auto', boxShadow: '0px 4px 20px rgba(0,0,0,0.5)' }}>
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
         <div style={{ backgroundColor: '#F0B90B', width: '12px', height: '12px', borderRadius: '50%', marginRight: '12px' }}></div>
         <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>BSC Chapel Testnet Multi-Sig</h2>
@@ -122,8 +129,8 @@ export default function FileBasedMultisig({ provider, safeAddress }) {
       {/* Owner 2 Section */}
       <div style={{ marginBottom: '24px' }}>
         <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#F0B90B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Signer Workflows (Owner 2)</h4>
-        <p style={{ color: '#A1A8B3', fontSize: '13px', margin: '0 0 12px 0' }}>Method A: Select the transaction `.json` file from your device:</p>
         
+        <p style={{ color: '#A1A8B3', fontSize: '13px', margin: '0 0 12px 0' }}>Method A: Select the transaction `.json` file from your device:</p>
         <input 
           type="file" 
           accept=".json" 
@@ -139,7 +146,7 @@ export default function FileBasedMultisig({ provider, safeAddress }) {
         </button>
       </div>
 
-      {/* Status Bar */}
+      {/* Status Log Console */}
       {txStatus && (
         <div style={{ backgroundColor: txStatus.startsWith('Error') || txStatus.startsWith('Execution') ? '#2A1415' : '#142A1E', border: `1px solid ${txStatus.startsWith('Error') || txStatus.startsWith('Execution') ? '#662225' : '#226639'}`, color: txStatus.startsWith('Error') || txStatus.startsWith('Execution') ? '#FF8085' : '#80FFAD', padding: '12px', borderRadius: '8px', fontSize: '13px', wordBreak: 'break-all' }}>
           {txStatus}
